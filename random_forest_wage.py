@@ -143,6 +143,6 @@ scores.mean(), scores.std(), scores
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.datasets import make_regression
 
-regr = RandomForestRegressor(max_depth=20, random_state=0, criterion='squared_error')
+regr = RandomForestRegressor(max_depth=20, random_state=0)
 scores = cross_val_score(regr, X, y, cv=ShuffleSplit(n_splits=10, test_size=50), scoring='neg_root_mean_squared_error', n_jobs=20)
 scores.mean(), scores.std(), scores
