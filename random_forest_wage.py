@@ -21,12 +21,17 @@ profile.to_file('/home/fast-pc-2023/wagesdata.html', silent=False)
 # FEATURE ENGINEERING : you can add features using this kind of methods and compare the model final results
 print(df[df.columns[df.dtypes == int]]**2)
 
+df['exp_div_edu'] = df.EXPERIENCE / df.EDUCATION
+df['exp_div_age'] = df.EXPERIENCE / df.AGE
+df['exp_squared'] = df.EXPERIENCE**2
+
+df
 #%%
 # FEATURE SELECTION : (not needed on such a small number of features but at least you can see what it looks like)
 import featurewiz as fwiz
 
-output = fwiz.featurewiz(df.iloc[:-50], 'WAGE', 0.7, 2, test_data=df.iloc[-50:], feature_engg='interactions')
-output
+output = fwiz.featurewiz(df.iloc[:-50], 'WAGE', 0.7, 2, test_data=df.iloc[-50:], feature_engg='')
+output[0].columns.to_list()
 
 
 #%%
@@ -78,7 +83,7 @@ if 1:
             sampler=optuna.samplers.NSGAIISampler(),
             study_name='reg_pct'
         )
-        study.optimize(objective, n_trials=100, n_jobs=20)
+        study.optimize(objective, n_trials=50, n_jobs=20)
 
         print("Number of finished trials: {}".format(len(study.trials)))
 
@@ -115,8 +120,12 @@ plt.barh(df.drop('WAGE', axis=1).columns, model.feature_importances_)
 
 # %%
 from sklearn.model_selection import cross_val_score
+from sklearn.model_selection import LeaveOneOut, LeavePOut, ShuffleSplit, KFold # you can test different cv methods, watch out -> LeavePOut requires high computation power
 
-X = df.drop('WAGE', axis=1)
+X = df[output[0].columns.to_list()]
 y = df.WAGE
-scores = cross_val_score(model, X, y, cv=4, scoring='neg_root_mean_squared_error') 
+scores = cross_val_score(model, X, y, cv=ShuffleSplit(n_splits=10,test_size=50), scoring='neg_root_mean_squared_error', n_jobs=20) 
 scores.mean(), scores.std(), scores
+# %%
+# Set of good params for columns = ['AGE', 'EDUCATION', 'OCCUPATION', 'SEX', 'RACE', 'SOUTH']
+# {'lambda_l1': 8.495583931651368e-07, 'num_leaves': 13, 'bagging_freq': 3, 'min_child_samples': 4, 'max_depth': 11, 'feature_fraction': 0.4516772840266232, 'n_estimators': 13, 'bagging_fraction': 0.5170023791699924}
