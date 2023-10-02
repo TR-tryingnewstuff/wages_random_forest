@@ -83,7 +83,7 @@ if 1:
             sampler=optuna.samplers.NSGAIISampler(),
             study_name='reg_pct'
         )
-        study.optimize(objective, n_trials=100, n_jobs=20)
+        study.optimize(objective, n_trials=1000, n_jobs=20)
 
         print("Number of finished trials: {}".format(len(study.trials)))
 
@@ -101,7 +101,7 @@ if 1:
 # %%
 
 model = lgb.LGBMRegressor('rf', metric='rmse', **trial.params, n_jobs=25)    
-
+print(trial.params)
 
 n_tries = 10
 loss = 0
@@ -127,7 +127,7 @@ y = df.WAGE
 scores = cross_val_score(model, X, y, cv=ShuffleSplit(n_splits=10, test_size=50), scoring='neg_root_mean_squared_error', n_jobs=20) 
 scores.mean(), scores.std(), scores
 # %%
-print(selected_col)
+
 # Set of good params for columns = ['AGE', 'EDUCATION', 'OCCUPATION', 'SEX', 'RACE', 'SOUTH']
-# {'lambda_l1': 8.495583931651368e-07, 'num_leaves': 13, 'bagging_freq': 3, 'min_child_samples': 4, 'max_depth': 11, 'feature_fraction': 0.4516772840266232, 'n_estimators': 13, 'bagging_fraction': 0.5170023791699924}
+# {'lambda_l1': 5.05930394412948e-08, 'num_leaves': 24, 'bagging_freq': 3, 'min_child_samples': 10, 'max_depth': 14, 'feature_fraction': 0.7603375303243309, 'n_estimators': 19, 'bagging_fraction': 0.6700136485341264}
 
