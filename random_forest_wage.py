@@ -131,3 +131,11 @@ scores.mean(), scores.std(), scores
 # Set of good params for columns = ['AGE', 'EDUCATION', 'OCCUPATION', 'SEX', 'RACE', 'SOUTH']
 # {'lambda_l1': 5.05930394412948e-08, 'num_leaves': 24, 'bagging_freq': 3, 'min_child_samples': 10, 'max_depth': 14, 'feature_fraction': 0.7603375303243309, 'n_estimators': 19, 'bagging_fraction': 0.6700136485341264}
 
+
+
+from sklearn.ensemble import RandomForestRegressor
+from sklearn.datasets import make_regression
+
+regr = RandomForestRegressor(max_depth=20, random_state=0, criterion='squared_error')
+scores = cross_val_score(regr, X, y, cv=ShuffleSplit(n_splits=10, test_size=50), scoring='neg_root_mean_squared_error', n_jobs=20)
+scores.mean(), scores.std(), scores
