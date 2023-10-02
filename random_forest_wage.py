@@ -5,10 +5,12 @@ import lightgbm as lgb
 import sklearn
 import optuna 
 from ydata_profiling import ProfileReport
+import seaborn as sns
 # %%
 
 df = pd.read_excel('/home/fast-pc-2023/Téléchargements/wagesmicrodata.xls',sheet_name='Data',header=0,index_col=0, skiprows=[1])
 df.WAGE = np.log(df.WAGE)
+sns.heatmap(df.corr())
 #%%
 profile = ProfileReport(df)
 profile.to_file('/home/fast-pc-2023/wagesdata.html', silent=False)
