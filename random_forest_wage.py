@@ -36,6 +36,7 @@ output = fwiz.featurewiz(df.iloc[:-50], 'WAGE', 0.7, 2, test_data=df.iloc[-50:],
 selected_col = output[1].columns.to_list()
 selected_col
 
+# NEXT SECTION IS HYPER PARAMETER TUNING, IF YOU DONT UNDERSTAND YOU CAN SKIP THIS SECTION
 #%%
 def objective(trial):
     
@@ -102,6 +103,8 @@ if 1:
 
 # %%
 
+# MAKE A MODEL AND FIT IT ON MULTIPLE RANDOMIZED TEST TRAIN SET AND AVERAGE THE RESULTS FOR ROBUST PERFORMANCE COMPARISON
+
 model = lgb.LGBMRegressor('rf', metric='rmse', **trial.params, n_jobs=25)    
 print(trial.params)
 
@@ -117,10 +120,12 @@ for i in range(n_tries):
 print(loss/n_tries)
 #%%
 import matplotlib.pyplot as plt
-
 plt.barh(df[selected_col].columns, model.feature_importances_)
 
 # %%
+
+#SAME AS PARAGRAPHS ABOVE BUT USING SKLEARN
+
 from sklearn.model_selection import cross_val_score
 from sklearn.model_selection import LeaveOneOut, LeavePOut, ShuffleSplit, KFold # you can test different cv methods, watch out -> LeavePOut requires high computation power
 
