@@ -31,8 +31,8 @@ df
 import featurewiz as fwiz
 
 output = fwiz.featurewiz(df.iloc[:-50], 'WAGE', 0.7, 2, test_data=df.iloc[-50:], feature_engg='')
-output[0].columns.to_list()
-
+selected_col = output[1].columns.to_list()
+selected_col
 
 #%%
 def objective(trial):
@@ -67,11 +67,11 @@ def objective(trial):
         temp_train = df.sample(frac=0.8)   # We randomly select a subset of the dataframe for training 
         temp_test = df.loc[df.index.difference(temp_train.index)]    # We select the inverse of the training dataset so as to form the test set
         
-        dtrain = lgb.Dataset(temp_train.drop('WAGE', axis=1),temp_train.WAGE)   # Use the Dataset class from lightgbm for faster processing but this is optional
-        dvalid = lgb.Dataset(temp_test.drop('WAGE', axis=1), temp_test.WAGE)        
+        dtrain = lgb.Dataset(temp_train[selected_col],temp_train.WAGE)   # Use the Dataset class from lightgbm for faster processing but this is optional
+        dvalid = lgb.Dataset(temp_test[selected_col], temp_test.WAGE)        
         
         gbm = lgb.train(param, dtrain, valid_sets=[dvalid], categorical_feature='auto')  #callbacks=[pruning_callback]
-        preds = gbm.predict(temp_test.drop('WAGE', axis=1))
+        preds = gbm.predict(temp_test[selected_col])
         accuracy += sklearn.metrics.mean_squared_error(temp_test.WAGE, preds, squared=True)
     
     return accuracy /n_trials 
@@ -83,7 +83,7 @@ if 1:
             sampler=optuna.samplers.NSGAIISampler(),
             study_name='reg_pct'
         )
-        study.optimize(objective, n_trials=50, n_jobs=20)
+        study.optimize(objective, n_trials=100, n_jobs=20)
 
         print("Number of finished trials: {}".format(len(study.trials)))
 
@@ -109,23 +109,25 @@ loss = 0
 for i in range(n_tries):
     temp_train = df.sample(frac=0.8)
     temp_test = df.loc[df.index.difference(temp_train.index)]
-    model_fitted = model.fit(temp_train.drop('WAGE', axis=1),temp_train.WAGE, eval_set=(temp_test.drop('WAGE', axis=1), temp_test.WAGE))
+    model_fitted = model.fit(temp_train[selected_col],temp_train.WAGE, eval_set=(temp_test[selected_col], temp_test.WAGE))
     loss += model_fitted.best_score_['valid_0']['rmse']
     
 print(loss/n_tries)
 #%%
 import matplotlib.pyplot as plt
 
-plt.barh(df.drop('WAGE', axis=1).columns, model.feature_importances_)
+plt.barh(df[selected_col].columns, model.feature_importances_)
 
 # %%
 from sklearn.model_selection import cross_val_score
 from sklearn.model_selection import LeaveOneOut, LeavePOut, ShuffleSplit, KFold # you can test different cv methods, watch out -> LeavePOut requires high computation power
 
-X = df[output[0].columns.to_list()]
+X = df[selected_col]
 y = df.WAGE
-scores = cross_val_score(model, X, y, cv=ShuffleSplit(n_splits=10,test_size=50), scoring='neg_root_mean_squared_error', n_jobs=20) 
+scores = cross_val_score(model, X, y, cv=ShuffleSplit(n_splits=10, test_size=50), scoring='neg_root_mean_squared_error', n_jobs=20) 
 scores.mean(), scores.std(), scores
 # %%
+print(selected_col)
 # Set of good params for columns = ['AGE', 'EDUCATION', 'OCCUPATION', 'SEX', 'RACE', 'SOUTH']
 # {'lambda_l1': 8.495583931651368e-07, 'num_leaves': 13, 'bagging_freq': 3, 'min_child_samples': 4, 'max_depth': 11, 'feature_fraction': 0.4516772840266232, 'n_estimators': 13, 'bagging_fraction': 0.5170023791699924}
+
